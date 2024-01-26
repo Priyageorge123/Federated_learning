@@ -2,8 +2,25 @@ import torch
 from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
+import wandb
 
 
+epochs = 10
+learningRate = 0.001
+batchSize = 4
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="CIFAR-supervised",
+
+    # track hyperparameters and run metadata
+    config={
+        "architecture": "ResNet",
+        "dataset": "CIFAR-10",
+        "learning_rate": learningRate,
+        "epochs": epochs,
+        "batchSize" : batchSize
+    }
+)
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
@@ -16,14 +33,19 @@ def load_data():
     )
     trainset = CIFAR10(".", train=True, download=True, transform=transform)
     testset = CIFAR10(".", train=False, download=True, transform=transform)
-    trainloader = DataLoader(trainset, batch_size=4, shuffle=True)
-    testloader = DataLoader(testset, batch_size=4)
-    num_examples = {"trainset" : len(trainset), "testset" : len(testset)}
-    return trainloader, testloader, num_examples
+
+    #Slit train into train and dev (split is 90/10)
+    proportion = int(len(trainset) /100 *90)
+    train, dev = torch.utils.data.random_split(trainset, [proportion,len(trainset)-proportion])
+
+    trainloader = DataLoader(train, batch_size=batchSize, shuffle=True)
+    devloader = DataLoader(dev, batch_size=batchSize, shuffle=True)
+    testloader = DataLoader(testset, batch_size=batchSize)
+    num_examples = {"trainset" : len(trainset), "devset" : len(devloader), "testset" : len(testset)}
+    return trainloader, devloader, testloader, num_examples
 
 
-trainloader, testloader, num_examples = load_data()
-
+trainloader, devloader, testloader, num_examples = load_data()
 
 
 #2. define NN manually
@@ -56,6 +78,7 @@ net.to(device)
 
 
 #2-Alternatively: Load a pretrained ResNet model and adapt it to our case
+
 from torchvision import models
 
 def initialize_model():
@@ -77,10 +100,10 @@ net.to(device)
 import torch.optim as optim
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(net.parameters(), lr=learningRate, momentum=0.9)
 
 #4 train
-for epoch in range(2):  # loop over the dataset multiple times
+for epoch in range(epochs):  # loop over the dataset multiple times
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -103,6 +126,23 @@ for epoch in range(2):  # loop over the dataset multiple times
             print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
             running_loss = 0.0
 
+
+    #Calculate loss on test set
+    correct = 0
+    total = 0
+    # since we're not training, we don't need to calculate the gradients for our outputs
+    with torch.no_grad():
+        for data in devloader:
+            inputs, labels = data[0].to(device), data[1].to(device)
+            # calculate outputs by running images through the network
+            outputs = net(inputs)
+            # the class with the highest energy is what we choose as prediction
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    valAccuracy = 100 * correct // total
+    wandb.log({"acc": valAccuracy})
+
 print('Finished Training')
 
 
@@ -121,3 +161,5 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
 
 print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
+
+wandb.finish()
