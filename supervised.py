@@ -9,10 +9,6 @@ epochs = 10
 learningRate = 0.001
 batchSize = 4
 
-#WANDB_API_KEY = os.environ['WANDB_API_KEY']
-keyFile = open('wandb.key', 'r')
-WANDB_API_KEY = keyFile.readline().rstrip()
-wandb.login(key=WANDB_API_KEY)
 wandb.init(
     # set the wandb project where this run will be logged
     project="CIFAR-supervised",
