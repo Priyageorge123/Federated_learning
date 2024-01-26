@@ -1,9 +1,8 @@
 import wandb
 
+# Just to try if login works
 #WANDB_API_KEY = os.environ['WANDB_API_KEY']
-keyFile = open('wandb.key', 'r')
-WANDB_API_KEY = keyFile.readline().rstrip()
-wandb.login(key=WANDB_API_KEY)
+
 
 # start a new wandb run to track this script
 wandb.init(
