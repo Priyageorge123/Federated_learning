@@ -107,13 +107,14 @@ def initialize_model():
     # Load pretrained model params
     model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
 
+    # We do not want to modify the parameters of ResNet
+    for param in model.parameters():
+        param.requires_grad = False
+
     # Replace the original classifier with a new Linear layer
     num_features = model.fc.in_features
     model.fc = nn.Linear(num_features, 10)
 
-    # Ensure all params get updated during finetuning
-    for param in model.parameters():
-        param.requires_grad = True
     return model
 net = initialize_model()
 net.to(device)
