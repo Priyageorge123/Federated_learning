@@ -75,27 +75,47 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class Net(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+class ConvNet(nn.Module):
+  def __init__(self, num_classes = 10):
+    super(ConvNet, self).__init__()
 
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = torch.flatten(x, 1) # flatten all dimensions except batch
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
+    self.conv1 = nn.Conv2d(in_channels = 3, out_channels = 12, kernel_size=3, stride = 1, padding = 1)
+    #Shape = (32, 12, 224, 224)
+    self.bn1 = nn.BatchNorm2d(num_features = 12)
+    #Shape = (32, 12, 224, 224)
+    self.relu1 = nn.ReLU()
+    #Shape = (32, 12, 224, 224)
+    self.pool = nn.MaxPool2d(kernel_size = 2)
+    #Reduce the image size be factor 2
+    #Shape = (32, 12, 112, 112)
+    self.conv2 = nn.Conv2d(in_channels = 12, out_channels = 20, kernel_size = 3, stride = 1, padding = 1)
+    #Shape = (32, 20, 112, 112)
+    self.relu2 = nn.ReLU()
+    #Shape = (32, 20, 112, 112)
+    self.conv3 = nn.Conv2d(in_channels = 20, out_channels = 32, kernel_size = 3, stride = 1, padding = 1)
+    self.bn3 = nn.BatchNorm2d(num_features=32)
+    self.relu3 = nn.ReLU()
+    #Shape = (32, 32, 112, 112)
+    self.fc1 = nn.Linear(in_features = 112*112*32, out_features = 120)
+    self.fc2 = nn.Linear(in_features = 120, out_features = num_classes)
 
+  def forward(self, input):
+    output = self.conv1(input)
+    output = self.bn1(output)
+    output = self.relu1(output)
+    output = self.pool(output)
+    output = self.conv2(output)
+    output = self.relu2(output)
+    output = self.conv3(output)
+    output = self.bn3(output)
+    output = self.relu3(output)
+    #Above output will be in matrix form, with shape (32, 32, 112, 112)
+    output = output.view(-1, 112*112*32)
+    output = F.relu(self.fc1(output))
+    output = self.fc2(output)
+    return output
 
-net = Net()
+net = ConvNet()
 net.to(device)
 
 
