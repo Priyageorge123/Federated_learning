@@ -112,8 +112,15 @@ def initialize_model():
         param.requires_grad = False
 
     # Replace the original classifier with a new Linear layer
-    num_features = model.fc.in_features
-    model.fc = nn.Linear(num_features, 10)
+    model.fc = nn.Sequential(
+    nn.Linear(model.fc.in_features, 256),
+    nn.ReLU(),
+    nn.Dropout(0.4),
+    nn.Linear(256, 10),
+    nn.LogSoftmax(dim=1) # For using NLLLoss()
+)
+#    num_features = model.fc.in_features
+#    model.fc = nn.Linear(num_features, 10)
 
     return model
 net = initialize_model()
@@ -122,8 +129,8 @@ net.to(device)
 #3 define loss
 import torch.optim as optim
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=learningRate, momentum=0.9)
+criterion = nn.NLLLoss()
+optimizer = optim.Adam(net.parameters())
 
 #4 train
 for epoch in range(epochs):  # loop over the dataset multiple times
