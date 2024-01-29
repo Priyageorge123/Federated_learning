@@ -160,6 +160,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     #Calculate loss on test set
     correct = 0
     total = 0
+    val_loss = 0
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in devloader:
@@ -170,8 +171,10 @@ for epoch in range(epochs):  # loop over the dataset multiple times
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+            val_loss += criterion(outputs, labels).item() * labels.size(0)
     valAccuracy = 100 * correct // total
-    wandb.log({"acc": valAccuracy})
+    val_loss /= len(devloader.dataset)
+    wandb.log({"val_acc": valAccuracy, "val_loss" :  val_loss} )
 
 print('Finished Training')
 
