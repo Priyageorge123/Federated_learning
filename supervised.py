@@ -2,6 +2,7 @@ import torch
 from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
+import torch.optim as optim
 import wandb
 
 
@@ -115,8 +116,8 @@ class ConvNet(nn.Module):
     output = self.fc2(output)
     return output
 
-net = ConvNet()
-net.to(device)
+#net = ConvNet()
+#net.to(device)
 
 
 #2-Alternatively: Load a pretrained ResNet model and adapt it to our case
@@ -147,7 +148,6 @@ net = initialize_model()
 net.to(device)
 
 #3 define loss
-import torch.optim as optim
 
 criterion = nn.NLLLoss()
 optimizer = optim.Adam(net.parameters())
@@ -177,7 +177,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
             running_loss = 0.0
 
 
-    #Calculate loss on test set
+    #Calculate loss on validation set
     correct = 0
     total = 0
     val_loss = 0
@@ -195,6 +195,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     valAccuracy = 100 * correct // total
     val_loss /= len(devloader.dataset)
     wandb.log({"val_acc": valAccuracy, "val_loss" :  val_loss} )
+    print(f'Validation Accuracy : {valAccuracy} %, Validation Loss :{val_loss}')
 
 print('Finished Training')
 
