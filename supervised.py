@@ -68,7 +68,7 @@ def load_data(augment=False):
     return trainloader, devloader, testloader, num_examples
 
 
-trainloader, devloader, testloader, num_examples = load_data()
+trainloader, devloader, testloader, num_examples = load_data(True)
 
 
 #2. define NN manually
