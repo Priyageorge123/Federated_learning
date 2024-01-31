@@ -8,7 +8,7 @@ import wandb
 
 epochs = 10
 learningRate = 0.001
-batchSize = 4
+batchSize = 16
 
 keyFile = open('wandb.key', 'r')
 WANDB_API_KEY = keyFile.readline().rstrip()
@@ -68,7 +68,7 @@ def load_data(augment=False):
     return trainloader, devloader, testloader, num_examples
 
 
-trainloader, devloader, testloader, num_examples = load_data(True)
+trainloader, devloader, testloader, num_examples = load_data()
 
 
 #2. define NN manually
