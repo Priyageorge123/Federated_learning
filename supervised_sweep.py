@@ -139,8 +139,52 @@ def train():
             # Print statistics
             running_loss += loss.item()
 
-        # Print average loss per epoch
-        print(f"Epoch {epoch + 1}, Loss: {running_loss / len(trainloader)}")
+            # Print average loss per epoch
+            if i % 2000 == 1999:  # print every 2000 mini-batches
+                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+                running_loss = 0.0
+    
+    
+        #Calculate loss on validation set
+        correct = 0
+        total = 0
+        val_loss = 0
+        # since we're not training, we don't need to calculate the gradients for our outputs
+        with torch.no_grad():
+            for data in devloader:
+                inputs, labels = data[0].to(device), data[1].to(device)
+                # calculate outputs by running images through the network
+                outputs = net(inputs)
+                # the class with the highest energy is what we choose as prediction
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+                val_loss += criterion(outputs, labels).item() * labels.size(0)
+        valAccuracy = 100 * correct // total
+        val_loss /= len(devloader.dataset)
+        wandb.log({"val_acc": valAccuracy, "val_loss" :  val_loss} )
+        print(f'Validation Accuracy : {valAccuracy} %, Validation Loss :{val_loss}')
+    
+    print('Finished Training')
+    
+    
+    #5 eval
+    correct = 0
+    total = 0
+    # since we're not training, we don't need to calculate the gradients for our outputs
+    with torch.no_grad():
+        for data in testloader:
+            inputs, labels = data[0].to(device), data[1].to(device)
+            # calculate outputs by running images through the network
+            outputs = net(inputs)
+            # the class with the highest energy is what we choose as prediction
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    
+    print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
+    
+    wandb.finish()
 
 # Start the sweep
 wandb.agent(sweep_id, train, count=5)
