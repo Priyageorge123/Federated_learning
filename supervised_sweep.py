@@ -184,7 +184,8 @@ def train():
     
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
     
-    wandb.finish()
 
 # Start the sweep
 wandb.agent(sweep_id, train, count=5)
+
+wandb.finish()
