@@ -7,8 +7,6 @@ import wandb
 
 
 epochs = 10
-#learningRate = 0.001
-batchSize = 16
 
 
 keyFile = open('wandb.key', 'r')
@@ -21,62 +19,61 @@ sweep_config = {
     "method": "random",
     "metric": {"name": "accuracy", "goal": "maximize"},
     "parameters": {
-#        "batchSize": {"values": [4, 8, 16, 32]},
+        "batchSize": {"values": [4, 8, 16, 32]},
         "learning_rate": {"values": [0.01,0.001,0.0001]},
-#        "augment": {"values": [True, False]}
+        "augment": {"values": [True, False]}
     }
 }
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
-#1Load data
-def load_data(augment=False):
-    """Load CIFAR-10 (training and test set)."""
-
-    augmentedTransform=transforms.Compose(
-    [
-        transforms.RandomResizedCrop(size=256, scale=(0.8, 1.0)),
-        transforms.RandomRotation(degrees=15),
-        transforms.RandomHorizontalFlip(),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225] )]
-    )
-
-    regularTransform = transforms.Compose(
-    [
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225] )]
-    )
-    if augment == True:
-        trainset = CIFAR10(".", train=True, download=True, transform=augmentedTransform)
-    else:
-        trainset = CIFAR10(".", train=True, download=True, transform=regularTransform)
-    testset = CIFAR10(".", train=False, download=True, transform=regularTransform)
-
-    #Slit train into train and dev (split is 90/10)
-    proportion = int(len(trainset) /100 *90)
-    train, dev = torch.utils.data.random_split(trainset, [proportion,len(trainset)-proportion])
-
-    trainloader = DataLoader(train, batch_size=batchSize, shuffle=True)
-    devloader = DataLoader(dev, batch_size=batchSize, shuffle=True)
-    testloader = DataLoader(testset, batch_size=batchSize)
-    num_examples = {"trainset" : len(trainset), "devset" : len(devloader), "testset" : len(testset)}
-    return trainloader, devloader, testloader, num_examples
-
-
-trainloader, devloader, testloader, num_examples = load_data()
-
-
-#2. define NN manually
-import torch.nn as nn
-from torchvision import models
 
 def main():
     wandb.init(project="my-second-sweep")
+    # 1Load data
+    def load_data(augment=wandb.config.augment):
+        """Load CIFAR-10 (training and test set)."""
+
+        augmentedTransform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(size=256, scale=(0.8, 1.0)),
+                transforms.RandomRotation(degrees=15),
+                transforms.RandomHorizontalFlip(),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]
+        )
+
+        regularTransform = transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]
+        )
+        if augment == True:
+            trainset = CIFAR10(".", train=True, download=True, transform=augmentedTransform)
+        else:
+            trainset = CIFAR10(".", train=True, download=True, transform=regularTransform)
+        testset = CIFAR10(".", train=False, download=True, transform=regularTransform)
+
+        # Slit train into train and dev (split is 90/10)
+        proportion = int(len(trainset) / 100 * 90)
+        train, dev = torch.utils.data.random_split(trainset, [proportion, len(trainset) - proportion])
+
+        trainloader = DataLoader(train, batch_size=wandb.config.batchSize, shuffle=True)
+        devloader = DataLoader(dev, batch_size=wandb.config.batchSize, shuffle=True)
+        testloader = DataLoader(testset, batch_size=wandb.config.batchSize)
+        num_examples = {"trainset": len(trainset), "devset": len(devloader), "testset": len(testset)}
+        return trainloader, devloader, testloader, num_examples
+
+    trainloader, devloader, testloader, num_examples = load_data()
+
+    # 2. define NN manually
+    import torch.nn as nn
+    from torchvision import models
+
     def initialize_model():
         # Load pretrained model params
         model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
