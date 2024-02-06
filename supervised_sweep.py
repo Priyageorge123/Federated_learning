@@ -122,7 +122,7 @@ def train():
     optimizer = optim.Adam(net.parameters(), lr=config.learning_rate)
 
     # Training loop
-    for epoch in range(config.epochs):
+    for epoch in range(epochs):
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data[0].to(device), data[1].to(device)
