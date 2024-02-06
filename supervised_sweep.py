@@ -109,7 +109,7 @@ def initialize_model():
 
     return model
 
-def train():
+def train(config=None):
     config = wandb.config
     trainloader, devloader, testloader, num_examples = load_data(config)
 
