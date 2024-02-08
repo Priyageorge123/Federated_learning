@@ -16,7 +16,7 @@ wandb.login(key=WANDB_API_KEY)
 
 
 # Sweep configuration
-sweepName="ner-sweep"
+sweepName="federated-sweep"
 sweep_config = {
     "method": "random",
     "metric": {"name": "accuracy", "goal": "maximize"},
