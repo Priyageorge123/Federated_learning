@@ -7,6 +7,8 @@ import wandb
 import torch.nn as nn
 from torchvision import models
 
+epochs = 10
+
 
 keyFile = open('wandb.key', 'r')
 WANDB_API_KEY = keyFile.readline().rstrip()
@@ -14,18 +16,18 @@ wandb.login(key=WANDB_API_KEY)
 
 
 # Sweep configuration
-epochs = 10
-sweepName = "CIFAR-sweep"
+sweepName="ner-sweep"
 sweep_config = {
     "method": "random",
     "metric": {"name": "accuracy", "goal": "maximize"},
     "parameters": {
         "batchSize": {"values": [4, 8, 16, 32]},
         "learning_rate": {"min" : 0.0001, "max" : 0.01},
-        "dropout_rate": {"values": [0.2, 0.4, 0.5]},
         "augment": {"values": [True, False]},
+
+        "dropout_rate": {"values": [0.2, 0.4, 0.5]},
         "trainAllParam": {"values": [True, False]},
-        "latentSpace" : {"values": [32, 64, 128, 256]},
+        "latentSpace": {"values": [32, 64, 128, 256]},
     }
 }
 
@@ -68,7 +70,7 @@ def main():
 
         trainloader = DataLoader(train, batch_size=wandb.config.batchSize, shuffle=True)
         devloader = DataLoader(dev, batch_size=wandb.config.batchSize, shuffle=True)
-        testloader = DataLoader(testset, batch_size=wandb.config.batchSize, shuffle = False)
+        testloader = DataLoader(testset, batch_size=wandb.config.batchSize)
         num_examples = {"trainset": len(trainset), "devset": len(devloader), "testset": len(testset)}
         return trainloader, devloader, testloader, num_examples
 
@@ -86,7 +88,7 @@ def main():
 
         # Replace the original classifier with a new Linear layer
         model.fc = nn.Sequential(
-        nn.Linear(model.fc.in_features, 256),
+        nn.Linear(model.fc.in_features, wandb.config.latentSpace),
         nn.ReLU(),
         nn.Dropout(wandb.config.dropout_rate),
         nn.Linear(wandb.config.latentSpace, 10),
@@ -154,4 +156,4 @@ print('Finished Training')
 
 # 3: Start the sweep
 sweep_id = wandb.sweep(sweep=sweep_config, project=sweepName)
-wandb.agent(sweep_id, function=main, count=50)
+wandb.agent(sweep_id, function=main, count=30)
