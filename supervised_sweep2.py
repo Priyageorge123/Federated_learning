@@ -4,9 +4,8 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 import torch.optim as optim
 import wandb
-
-
-epochs = 10
+import torch.nn as nn
+from torchvision import models
 
 
 keyFile = open('wandb.key', 'r')
@@ -15,13 +14,18 @@ wandb.login(key=WANDB_API_KEY)
 
 
 # Sweep configuration
+epochs = 10
+sweepName = "CIFAR-sweep"
 sweep_config = {
     "method": "random",
     "metric": {"name": "accuracy", "goal": "maximize"},
     "parameters": {
         "batchSize": {"values": [4, 8, 16, 32]},
-        "learning_rate": {"values": [0.01,0.001,0.0001]},
-        "augment": {"values": [True, False]}
+        "learning_rate": {"min" : 0.0001, "max" : 0.01},
+        "dropout_rate": {"values": [0.2, 0.4, 0.5]},
+        "augment": {"values": [True, False]},
+        "trainAllParam": {"values": [True, False]},
+        "latentSpace" : {"values": [32, 64, 128, 256]},
     }
 }
 
@@ -30,7 +34,7 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 
 def main():
-    wandb.init(project="my-second-sweep")
+    wandb.init(project=sweepName)
     # 1Load data
     def load_data(augment=wandb.config.augment):
         """Load CIFAR-10 (training and test set)."""
@@ -64,30 +68,28 @@ def main():
 
         trainloader = DataLoader(train, batch_size=wandb.config.batchSize, shuffle=True)
         devloader = DataLoader(dev, batch_size=wandb.config.batchSize, shuffle=True)
-        testloader = DataLoader(testset, batch_size=wandb.config.batchSize)
+        testloader = DataLoader(testset, batch_size=wandb.config.batchSize, shuffle = False)
         num_examples = {"trainset": len(trainset), "devset": len(devloader), "testset": len(testset)}
         return trainloader, devloader, testloader, num_examples
 
     trainloader, devloader, testloader, num_examples = load_data()
 
     # 2. define NN manually
-    import torch.nn as nn
-    from torchvision import models
-
     def initialize_model():
         # Load pretrained model params
         model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
 
         # We do not want to modify the parameters of ResNet
-        for param in model.parameters():
-            param.requires_grad = False
+        if wandb.config.trainAllParam == False:
+            for param in model.parameters():
+                param.requires_grad = False
 
         # Replace the original classifier with a new Linear layer
         model.fc = nn.Sequential(
         nn.Linear(model.fc.in_features, 256),
         nn.ReLU(),
-        nn.Dropout(0.4),
-        nn.Linear(256, 10),
+        nn.Dropout(wandb.config.dropout_rate),
+        nn.Linear(wandb.config.latentSpace, 10),
         nn.LogSoftmax(dim=1) # For using NLLLoss()
     )
     #    num_features = model.fc.in_features
@@ -151,5 +153,5 @@ print('Finished Training')
 
 
 # 3: Start the sweep
-sweep_id = wandb.sweep(sweep=sweep_config, project="my-second-sweep")
-wandb.agent(sweep_id, function=main, count=30)
+sweep_id = wandb.sweep(sweep=sweep_config, project=sweepName)
+wandb.agent(sweep_id, function=main, count=50)
