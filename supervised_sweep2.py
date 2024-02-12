@@ -19,15 +19,15 @@ wandb.login(key=WANDB_API_KEY)
 sweepName="federated-sweep"
 sweep_config = {
     "method": "random",
-    "metric": {"name": "accuracy", "goal": "maximize"},
+    "metric": {"name": "val_acc", "goal": "maximize"},
     "parameters": {
         "batchSize": {"values": [4, 8, 16, 32]},
-        "learning_rate": {"min" : 0.0001, "max" : 0.01},
+        "learning_rate": {"min" : 0.00001, "max" : 0.01},
         "augment": {"values": [True, False]},
 
-        "dropout_rate": {"values": [0.2, 0.4, 0.5]},
+        "dropout_rate": {"min" : 0.1, "max" : 0.5 },
         "trainAllParam": {"values": [True, False]},
-        "latentSpace": {"values": [32, 64, 128, 256]},
+        "latentSpace": {"min": 32, "max" : 256},
     }
 }
 
