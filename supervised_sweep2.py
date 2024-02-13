@@ -156,4 +156,4 @@ print('Finished Training')
 
 # 3: Start the sweep
 sweep_id = wandb.sweep(sweep=sweep_config, project=sweepName)
-wandb.agent(sweep_id, function=main, count=30)
+wandb.agent(sweep_id, function=main, count=100)
