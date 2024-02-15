@@ -21,13 +21,15 @@ sweep_config = {
     "method": "random",
     "metric": {"name": "val_acc", "goal": "maximize"},
     "parameters": {
-        "batchSize": {"values": [4, 8, 16, 32]},
+        "batchSize": {"values": [4, 8, 16, 32, 64, 128]},
         "learning_rate": {"min" : 0.00001, "max" : 0.01},
         "augment": {"values": [True, False]},
 
-        "dropout_rate": {"min" : 0.1, "max" : 0.5 },
+        "dropout_rate": {"values" : [0.1, 0.3, 0.5] },
         "trainAllParam": {"values": [True, False]},
-        "latentSpace": {"min": 32, "max" : 256},
+        "latentSpace": {"values": [32, 64, 128, 256]},
+
+        "modelarchitecture" : {"values" : ["ResNet50", "EfficientNet_V2"]}
     }
 }
 
@@ -78,8 +80,11 @@ def main():
 
     # 2. define NN manually
     def initialize_model():
-        # Load pretrained model params
-        model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
+        if wandb.config.modelarchitecture == 'ResNet50':
+            model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
+        elif wandb.config.modelarchitecture == 'EfficientNet_V2':
+            model = models.efficientnet_v2_s(weights = 'EfficientNet_V2_S_Weights.DEFAULT')
+
 
         # We do not want to modify the parameters of ResNet
         if wandb.config.trainAllParam == False:
