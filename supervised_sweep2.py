@@ -82,25 +82,36 @@ def main():
     def initialize_model():
         if wandb.config.modelarchitecture == 'ResNet50':
             model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
+
+            # We do not want to modify the parameters of ResNet
+            if wandb.config.trainAllParam == False:
+                for param in model.parameters():
+                    param.requires_grad = False
+
+            model.fc = nn.Sequential(
+                nn.Linear(model.fc.in_features, wandb.config.latentSpace),
+                nn.ReLU(),
+                nn.Dropout(wandb.config.dropout_rate),
+                nn.Linear(wandb.config.latentSpace, 10),
+                nn.LogSoftmax(dim=1)  # For using NLLLoss()
+            )
+
         elif wandb.config.modelarchitecture == 'EfficientNet_V2':
             model = models.efficientnet_v2_s(weights = 'EfficientNet_V2_S_Weights.DEFAULT')
 
+            # We do not want to modify the parameters of ResNet
+            if wandb.config.trainAllParam == False:
+                for param in model.parameters():
+                    param.requires_grad = False
 
-        # We do not want to modify the parameters of ResNet
-        if wandb.config.trainAllParam == False:
-            for param in model.parameters():
-                param.requires_grad = False
-
-        # Replace the original classifier with a new Linear layer
-        model.fc = nn.Sequential(
-        nn.Linear(model.fc.in_features, wandb.config.latentSpace),
-        nn.ReLU(),
-        nn.Dropout(wandb.config.dropout_rate),
-        nn.Linear(wandb.config.latentSpace, 10),
-        nn.LogSoftmax(dim=1) # For using NLLLoss()
-    )
-    #    num_features = model.fc.in_features
-    #    model.fc = nn.Linear(num_features, 10)
+            # Replace the original classifier with a new Linear layer
+            model.classifier = nn.Sequential(
+                nn.Linear(model.classifier[1].in_features, wandb.config.latentSpace),
+                nn.ReLU(),
+                nn.Dropout(wandb.config.dropout_rate),
+                nn.Linear(wandb.config.latentSpace, 10),
+                nn.LogSoftmax(dim=1)  # For using NLLLoss()
+            )
 
         return model
     net = initialize_model()
