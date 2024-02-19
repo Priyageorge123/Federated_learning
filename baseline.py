@@ -53,15 +53,16 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         return self.fc3(x)
 
-def load_data(node_id):
+def load_data(node_id, seed=1337):
     """Load partition CIFAR10 data."""
-    fds = FederatedDataset(dataset="cifar10", partitioners={"train": 3})
+    fds = FederatedDataset(dataset="cifar10", partitioners={"train": 3}, seed=seed)
     partition = fds.load_partition(node_id)
     # Divide data on each node: 80% train, 20% test
     partition_train_test = partition.train_test_split(test_size=0.2)
     pytorch_transforms = Compose(
         [ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     )
+    testData = fds.load_full("test")
 
     def apply_transforms(batch):
         """Apply transforms to the partition from FederatedDataset."""
@@ -70,8 +71,9 @@ def load_data(node_id):
 
     partition_train_test = partition_train_test.with_transform(apply_transforms)
     trainloader = DataLoader(partition_train_test["train"], batch_size=32, shuffle=True)
-    testloader = DataLoader(partition_train_test["test"], batch_size=32)
-    return trainloader, testloader
+    devloader = DataLoader(partition_train_test["test"], batch_size=32)
+    testloader = DataLoader(testData.with_transform(apply_transforms), batch_size=32)
+    return trainloader, devloader, testloader
 
 def train(net, trainloader, epochs):
     """Train the model on the training set."""
@@ -86,7 +88,7 @@ def train(net, trainloader, epochs):
             optimizer.step()
 
         # Added a evaluation loop
-        loss, acc = test(net, testloader)
+        loss, acc = test(net, devloader)
         print("Epoch = " +str(epoch) +"Accuracy= " + str(acc))
 
 
@@ -107,9 +109,11 @@ def test(net, testloader):
 
 
 net = Net().to(DEVICE)
-trainloader, testloader = load_data(node_id=node_id)
+trainloader, devloader, testloader = load_data(node_id=node_id)
 
 train(net, trainloader, epochs=3)
-loss, acc = test(net, testloader)
 
-print("Final Accuracy= " +str(acc))
+
+loss, acc = test(net, testloader)
+print("Accuracy on the test data= " + str(acc))
+
