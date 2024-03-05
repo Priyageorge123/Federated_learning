@@ -21,7 +21,7 @@ wandb.init(
 
     # track hyperparameters and run metadata
     config={
-        "architecture": "ResNet",
+        "architecture": "CNN",
         "dataset": "CIFAR-10",
         "learning_rate": learningRate,
         "epochs": epochs,
