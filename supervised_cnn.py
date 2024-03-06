@@ -1,13 +1,8 @@
 """
-This is a simple baseline, which trains a model similar to federatedClient
+Evaluation is done on the entire dataset using CNN.
 
 """
 
-import argparse
-import warnings
-from collections import OrderedDict
-
-from flwr_datasets import FederatedDataset
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,7 +11,7 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 import torch.optim as optim
 from torchvision.transforms import Compose, Normalize, ToTensor
-from tqdm import tqdm
+
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 batchSize = 16
