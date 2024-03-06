@@ -49,7 +49,8 @@ def load_data():
     trainloader = DataLoader(train, batch_size=batchSize, shuffle=True)
     devloader = DataLoader(dev, batch_size=batchSize, shuffle=True)
     testloader = DataLoader(testset, batch_size=batchSize)
-
+    return trainloader, devloader, testloader
+    
 trainloader, devloader, testloader = load_data()
 
 net=Net()
