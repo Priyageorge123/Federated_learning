@@ -72,6 +72,7 @@ def test(net, testloader):
 def load_data(node_id):
     """Load partition CIFAR10 data."""
     fds = FederatedDataset(dataset="cifar10", partitioners={"train": 3})
+    testData = fds.load_full("test")
     partition = fds.load_partition(node_id)
     # Divide data on each node: 80% train, 20% test
     partition_train_test = partition.train_test_split(test_size=0.2)
@@ -85,9 +86,10 @@ def load_data(node_id):
         return batch
 
     partition_train_test = partition_train_test.with_transform(apply_transforms)
-    trainloader = DataLoader(partition_train_test["train"], batch_size=32, shuffle=True)
-    testloader = DataLoader(partition_train_test["test"], batch_size=32)
-    return trainloader, testloader
+    trainloader = DataLoader(partition_train_test["train"], batch_size=16, shuffle=True)
+    devloader = DataLoader(partition_train_test["test"], batch_size=16)
+    testloader = DataLoader(testData.with_transform(apply_transforms), batch_size=16)
+    return trainloader,devloader, testloader
 
 
 # #############################################################################
@@ -107,7 +109,7 @@ node_id = parser.parse_args().node_id
 
 # Load model and data (simple CNN, CIFAR-10)
 net = Net().to(DEVICE)
-trainloader, testloader = load_data(node_id=node_id)
+trainloader,devloader, testloader = load_data(node_id=node_id)
 
 
 # Define Flower client
@@ -139,4 +141,4 @@ fl.client.start_numpy_client(
 
 #Print the performance on the dev-set
 loss, acc = test(net, testloader)
-print("Accuracy on the Dev data= " + str(acc))
+print("Accuracy on the Test data= " + str(acc))
