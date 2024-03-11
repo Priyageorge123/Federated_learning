@@ -87,7 +87,10 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     #Calculate loss on validation set
     correct = 0
     total = 0
-    val_loss = 0
+    val_loss = 0.0
+    patience=3
+    best_val_loss = float('inf')
+    epochs_no_improve = 0
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in devloader:
@@ -102,6 +105,15 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     valAccuracy = 100 * correct // total
     val_loss /= len(devloader.dataset)
     print(f'Validation Accuracy : {valAccuracy} %, Validation Loss :{val_loss}')
+    # Check for early stopping
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        epochs_no_improve = 0
+    else:
+        epochs_no_improve += 1
+        if epochs_no_improve == patience:
+            print(f"Early stopping after epoch {epoch + 1}")
+            break
 
 print('Finished Training')
 
