@@ -132,4 +132,4 @@ with torch.no_grad():
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-print(f'Accuracy on the test data= {correct // total}')
+print(f'Accuracy on the test data= {correct / total}')
