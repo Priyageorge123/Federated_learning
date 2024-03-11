@@ -75,7 +75,10 @@ def load_data(node_id, seed=1337):
     testloader = DataLoader(testData.with_transform(apply_transforms), batch_size=32)
     return trainloader, devloader, testloader
 
-def train(net, trainloader, epochs):
+def train(net, trainloader, epochs, patience=3):
+    best_val_loss = float('inf')
+    epochs_no_improve = 0
+    val_loss = 0.0
     """Train the model on the training set."""
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -88,9 +91,17 @@ def train(net, trainloader, epochs):
             optimizer.step()
 
         # Added a evaluation loop
-        loss, acc = test(net, devloader)
-        print("Epoch = " +str(epoch) +"Accuracy= " + str(acc))
-
+        val_loss, acc = test(net, devloader)
+        print("Epoch = " +str(epoch) +" Accuracy= " + str(acc) +" Validation Loss" +str(val_loss))
+        # Check for early stopping
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
+            if epochs_no_improve == patience:
+                print(f"Early stopping after epoch {epoch}")
+                break
 
 def test(net, testloader):
     """Validate the model on the test set."""
@@ -111,7 +122,7 @@ def test(net, testloader):
 net = Net().to(DEVICE)
 trainloader, devloader, testloader = load_data(node_id=node_id)
 
-train(net, trainloader, epochs=3)
+train(net, trainloader, epochs=10)
 
 
 loss, acc = test(net, testloader)
