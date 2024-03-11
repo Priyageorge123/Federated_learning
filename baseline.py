@@ -70,9 +70,9 @@ def load_data(node_id, seed=1337):
         return batch
 
     partition_train_test = partition_train_test.with_transform(apply_transforms)
-    trainloader = DataLoader(partition_train_test["train"], batch_size=32, shuffle=True)
-    devloader = DataLoader(partition_train_test["test"], batch_size=32)
-    testloader = DataLoader(testData.with_transform(apply_transforms), batch_size=32)
+    trainloader = DataLoader(partition_train_test["train"], batch_size=16, shuffle=True)
+    devloader = DataLoader(partition_train_test["test"], batch_size=16)
+    testloader = DataLoader(testData.with_transform(apply_transforms), batch_size=16)
     return trainloader, devloader, testloader
 
 def train(net, trainloader, epochs, patience=3):
@@ -92,7 +92,7 @@ def train(net, trainloader, epochs, patience=3):
 
         # Added a evaluation loop
         val_loss, acc = test(net, devloader)
-        print("Epoch = " +str(epoch) +" Accuracy= " + str(acc) +" Validation Loss" +str(val_loss))
+        print("Epoch = " +str(epoch + 1) +" Accuracy= " + str(acc) +" Validation Loss" +str(val_loss))
         # Check for early stopping
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -100,7 +100,7 @@ def train(net, trainloader, epochs, patience=3):
         else:
             epochs_no_improve += 1
             if epochs_no_improve == patience:
-                print(f"Early stopping after epoch {epoch}")
+                print(f"Early stopping after epoch {epoch + 1}")
                 break
 
 def test(net, testloader):
