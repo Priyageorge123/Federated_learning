@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 file_names = ['baseline.py','supervised_cnn.py']
 num_runs = 5  # Adjust the number of runs as needed
 
-# List to store test accuracies from each run
-test_accuracies = []
+# Store test accuracies from each run
 all_accuracies = []
 
 for file_name in file_names:
+    test_accuracies = []
 # Run the script multiple times and accumulate test accuracies
     for _ in range(num_runs):
         output = subprocess.check_output(['python', file_name]).decode('utf-8')
@@ -28,7 +28,8 @@ for file_name in file_names:
     
     all_accuracies.append(test_accuracies)
 # Create a boxplot of the test accuracies
-plt.boxplot(all_accuracies)
+plt.figure(figsize=(10, 6))
+plt.boxplot(all_accuracies, whis=1.5)
 plt.xticks([1, 2], file_names)  # Set x-axis labels as file names
 plt.title('Test Accuracies Comparison')
 plt.xlabel('Files')
