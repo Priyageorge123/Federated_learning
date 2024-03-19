@@ -118,8 +118,31 @@ def test(net, testloader):
 
     return loss, accuracy
 
+from torchvision import models
 
-net = Net().to(DEVICE)
+def initialize_model():
+    # Load pretrained model params
+    model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
+
+    # We do not want to modify the parameters of ResNet
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # Replace the original classifier with a new Linear layer
+    model.fc = nn.Sequential(
+    nn.Linear(model.fc.in_features, 256),
+    nn.ReLU(),
+    nn.Dropout(0.4),
+    nn.Linear(256, 10),
+    nn.LogSoftmax(dim=1) # For using NLLLoss()
+)
+#    num_features = model.fc.in_features
+#    model.fc = nn.Linear(num_features, 10)
+
+    return model
+net = initialize_model()
+net.to(device)
+#net = Net().to(DEVICE)
 trainloader, devloader, testloader = load_data(node_id=node_id)
 
 train(net, trainloader, epochs=10)
