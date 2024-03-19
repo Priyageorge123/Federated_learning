@@ -55,12 +55,12 @@ def load_data(train_data):
 
     
     """Load CIFAR10 data."""
-    dataset_dir = "C:/Users/priya/Downloads/cifar-10-python"
+
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     )
-    trainset = CIFAR10(root=dataset_dir, train=True, download=True, transform=transform)
-    testset = CIFAR10(root=dataset_dir, train=False, download=True, transform=transform)
+    trainset = CIFAR10(".", train=True, download=True, transform=transform)
+    testset = CIFAR10(".", train=False, download=True, transform=transform)
     """ #Split train into train and dev (split is 80/20)"""
     
     if(train_data):
