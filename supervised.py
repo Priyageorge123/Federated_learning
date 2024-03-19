@@ -31,10 +31,10 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 
 #1Load data
-def load_data(augment=False):
+def load_data():
     """Load CIFAR-10 (training and test set)."""
 
-    augmentedTransform=transforms.Compose(
+    """#augmentedTransform=transforms.Compose(
     [
         transforms.RandomResizedCrop(size=256, scale=(0.8, 1.0)),
         transforms.RandomRotation(degrees=15),
@@ -44,7 +44,7 @@ def load_data(augment=False):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225] )]
     )
 
-    regularTransform = transforms.Compose(
+    #regularTransform = transforms.Compose(
     [
         transforms.Resize(256),
         transforms.CenterCrop(224),
@@ -55,10 +55,16 @@ def load_data(augment=False):
         trainset = CIFAR10(".", train=True, download=True, transform=augmentedTransform)
     else:
         trainset = CIFAR10(".", train=True, download=True, transform=regularTransform)
-    testset = CIFAR10(".", train=False, download=True, transform=regularTransform)
+    testset = CIFAR10(".", train=False, download=True, transform=regularTransform)"""
 
+    transform = transforms.Compose(
+        [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    )
+    trainset = CIFAR10(root=".", train=True, download=True, transform=transform)
+    testset = CIFAR10(root=".", train=False, download=True, transform=transform)
+    
     #Slit train into train and dev (split is 90/10)
-    proportion = int(len(trainset) /100 *90)
+    proportion = int(len(trainset) /100 *80)
     train, dev = torch.utils.data.random_split(trainset, [proportion,len(trainset)-proportion])
 
     trainloader = DataLoader(train, batch_size=batchSize, shuffle=True)
