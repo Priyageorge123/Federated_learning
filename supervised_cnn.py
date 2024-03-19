@@ -12,7 +12,7 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-epochs=10
+epochs=3
 batchSize = 16
 
 
@@ -52,8 +52,31 @@ def load_data():
     return trainloader, devloader, testloader
     
 trainloader, devloader, testloader = load_data()
+from torchvision import models
 
-net=Net()
+def initialize_model():
+    # Load pretrained model params
+    model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
+
+    # We do not want to modify the parameters of ResNet
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # Replace the original classifier with a new Linear layer
+    model.fc = nn.Sequential(
+    nn.Linear(model.fc.in_features, 256),
+    nn.ReLU(),
+    nn.Dropout(0.4),
+    nn.Linear(256, 10),
+    nn.LogSoftmax(dim=1) # For using NLLLoss()
+)
+#    num_features = model.fc.in_features
+#    model.fc = nn.Linear(num_features, 10)
+
+    return model
+net = initialize_model()
+#net.to(device)
+#net=Net()
 net.to(DEVICE)
 
 criterion = nn.CrossEntropyLoss()
