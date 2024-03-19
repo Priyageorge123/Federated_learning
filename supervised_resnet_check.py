@@ -14,7 +14,7 @@ from torchvision import models
 
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-epochs=5
+epochs=10
 batchSize = 16
 
 
