@@ -141,7 +141,7 @@ def initialize_model():
 
     return model
 net = initialize_model()
-net.to(device)
+net.to(DEVICE)
 #net = Net().to(DEVICE)
 trainloader, devloader, testloader = load_data(node_id=node_id)
 
