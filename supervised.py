@@ -6,7 +6,7 @@ import torch.optim as optim
 import wandb
 
 
-epochs = 10
+epochs = 3
 learningRate = 0.001
 batchSize = 16
 
@@ -149,8 +149,10 @@ net.to(device)
 
 #3 define loss
 
-criterion = nn.NLLLoss()
-optimizer = optim.Adam(net.parameters())
+#criterion = nn.NLLLoss()
+#optimizer = optim.Adam(net.parameters())
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 #4 train
 for epoch in range(epochs):  # loop over the dataset multiple times
