@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 # Define the file name and the number of runs
 file_name = 'supervised_resnet.py'
-num_runs = 2  # Adjust the number of runs as needed
+num_runs = 5  # Adjust the number of runs as needed
 
 # List to store test accuracies from each run
 
