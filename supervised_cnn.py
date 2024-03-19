@@ -12,7 +12,7 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-epochs=3
+epochs=10
 batchSize = 16
 
 
