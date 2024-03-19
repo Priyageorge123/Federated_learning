@@ -6,7 +6,7 @@ import torch.optim as optim
 import wandb
 
 
-epochs = 3
+epochs = 10
 learningRate = 0.001
 batchSize = 16
 
