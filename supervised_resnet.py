@@ -6,6 +6,7 @@ import torch.optim as optim
 from torchvision import models
 import torch.nn as nn
 import torch.nn.functional as F
+import random
 
 
 epochs = 10
@@ -68,6 +69,7 @@ def load_data(train_data):
         print(proportion)
         train, dev = torch.utils.data.random_split(trainset, [proportion,len(trainset)-proportion])
     else:
+        random.seed(42)
         split_train = int(len(trainset) /100 *33)
         train1, dev1 = torch.utils.data.random_split(trainset, [split_train,len(trainset)-split_train])
         proportion = int(len(train1) /100 *80)
