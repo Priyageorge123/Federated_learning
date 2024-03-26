@@ -38,7 +38,7 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         return self.fc3(x)"""
 
-def load_data():
+def load_data(augment=False):
     """Load CIFAR10 data."""
     augmentedTransform=transforms.Compose(
     [
