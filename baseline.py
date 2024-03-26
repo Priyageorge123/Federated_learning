@@ -12,6 +12,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
 from torchvision.transforms import Compose, Normalize, ToTensor
 from tqdm import tqdm
 
