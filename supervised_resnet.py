@@ -63,13 +63,13 @@ def load_data(train_data,augment=False):
     trainset = CIFAR10(".", train=True, download=True, transform=transform)
     testset = CIFAR10(".", train=False, download=True, transform=transform)"""
     """ #Split train into train and dev (split is 80/20)"""
-    
-    if(train_data):
+    random.seed(42)
+    torch.manual_seed(42)
+    if train_data:
         proportion = int(len(trainset) /100 *80)
         print(proportion)
         train, dev = torch.utils.data.random_split(trainset, [proportion,len(trainset)-proportion])
     else:
-        random.seed(42)
         split_train = int(len(trainset) /100 *33)
         train1, dev1 = torch.utils.data.random_split(trainset, [split_train,len(trainset)-split_train])
         proportion = int(len(train1) /100 *80)
