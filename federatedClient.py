@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from torchvision.transforms import Compose, Normalize, ToTensor
+from torchvision import models
 from tqdm import tqdm
 
 
@@ -21,25 +22,23 @@ warnings.filterwarnings("ignore", category=UserWarning)
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-class Net(nn.Module):
-    """Model (simple CNN adapted from 'PyTorch: A 60 Minute Blitz')"""
+def initialize_model():
+    # Load pretrained model params
+    model = models.resnet50(weights='ResNet50_Weights.DEFAULT')
 
-    def __init__(self) -> None:
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+    # We do not want to modify the parameters of ResNet
+    for param in model.parameters():
+        param.requires_grad = False
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        return self.fc3(x)
+    # Replace the original classifier with a new Linear layer
+    model.fc = nn.Sequential(
+    nn.Linear(model.fc.in_features, 256),
+    nn.ReLU(),
+    nn.Dropout(0.4),
+    nn.Linear(256, 10)
+)
+
+    return model
 
 
 def train(net, trainloader, epochs):
@@ -113,7 +112,8 @@ parser.add_argument(
 node_id = parser.parse_args().node_id
 
 # Load model and data (simple CNN, CIFAR-10)
-net = Net().to(DEVICE)
+net = initialize_model()
+net.to(DEVICE)
 trainloader,devloader, testloader = load_data(node_id=node_id)
 
 
